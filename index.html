@@ -17,6 +17,7 @@
         <div class="controls">
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="व्यवसाय शोधा..." aria-label="व्यवसाय शोधा">
+                <button id="clearSearch" aria-label="शोध मिटवा">❌</button>
             </div>
 
             <div class="category-selection">
@@ -25,7 +26,7 @@
             </div>
         </div>
 
-        <div id="businessList" class="business-grid" role="main"></div>
+        <div id="businessList" class="business-grid" role="main" aria-live="polite"></div>
     </div>
 
     <script src="script.js"></script>
