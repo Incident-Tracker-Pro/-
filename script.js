@@ -76,20 +76,19 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         categoryItem.classList.add('selected');
         selectedCategory = category.id;
+        // Removed the line that sets selected category name opacity to 1, as this can cause layout shifts
         selectedCategoryName.textContent = category.name;
-        selectedCategoryName.style.opacity = '1';
         filterBusinesses();
     }
 
     // Select all categories
     function selectAllCategories(allCategoriesItem) {
-        document.querySelectorAll('.category-item').forEach(item =>
+        document.querySelectorName('.category-item').forEach(item =>
             item.classList.remove('selected')
         );
         allCategoriesItem.classList.add('selected');
         selectedCategory = null;
         selectedCategoryName.textContent = '';
-        selectedCategoryName.style.opacity = '0';
         filterBusinesses();
     }
 
@@ -122,10 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return acc;
         }, {});
 
+        // Only render category headers if there are multiple categories
+        const showCategoryHeaders = Object.keys(groupedBusinesses).length > 1;
+
         for (const categoryId in groupedBusinesses) {
             const category = businessData.categories.find(cat => cat.id === categoryId);
-            const categoryHeader = createCategoryHeader(category);
-            businessList.appendChild(categoryHeader);
+            
+            if (showCategoryHeaders) {
+                const categoryHeader = createCategoryHeader(category);
+                businessList.appendChild(categoryHeader);
+            }
 
             groupedBusinesses[categoryId].forEach(business => {
                 const businessCard = createBusinessCard(business);
