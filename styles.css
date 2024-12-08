@@ -50,6 +50,12 @@ header h1 {
     margin-bottom: 25px;
 }
 
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .search-container input {
     width: 100%;
     padding: 12px 18px;
@@ -59,6 +65,14 @@ header h1 {
     background-color: white;
     transition: all 0.3s ease;
     outline: none;
+}
+
+.search-container button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
 }
 
 .search-container input:focus {
@@ -189,6 +203,13 @@ header h1 {
     background-color: white;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.loader {
+    text-align: center;
+    color: var(--primary-color);
+    padding: 20px;
+    font-size: 1.2rem;
 }
 
 @media screen and (max-width: 600px) {
