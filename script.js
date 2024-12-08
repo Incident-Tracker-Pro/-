@@ -2,120 +2,75 @@ document.addEventListener('DOMContentLoaded', () => {
     const businessList = document.getElementById('businessList');
     const searchInput = document.getElementById('searchInput');
     const clearSearchButton = document.getElementById('clearSearch');
-    const categoryGrid = document.getElementById('categoryGrid');
-    const selectedCategoryName = document.getElementById('selectedCategoryName');
+    const categoryButtons = document.getElementById('categoryButtons');
     let businessData = null;
     let selectedCategory = null;
 
     async function fetchBusinessData() {
-        showLoader();
+        showLoading();
         try {
             const response = await fetch('./businesses.json');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) throw new Error('डेटा लोड होत नाही.');
             businessData = await response.json();
 
-            renderCategoryGrid(businessData.categories);
+            renderCategoryButtons(businessData.categories);
             renderBusinesses(businessData.businesses);
         } catch (error) {
-            businessList.innerHTML = `
-                <div class="no-results">
-                    <p>डेटा लोड करण्यात त्रुटी आली: ${error.message}</p>
-                    <button onclick="fetchBusinessData()">पुन्हा प्रयत्न करा</button>
-                </div>`;
-        } finally {
-            hideLoader();
+            showError(error.message);
         }
     }
 
-    function renderCategoryGrid(categories) {
-        categoryGrid.innerHTML = '';
+    function renderCategoryButtons(categories) {
+        categoryButtons.innerHTML = `
+            <button onclick="filterByCategory(null)">सर्व व्यवसाय</button>
+        `;
         categories.forEach(category => {
-            const categoryItem = createCategoryItem(category);
-            categoryGrid.appendChild(categoryItem);
+            const button = document.createElement('button');
+            button.textContent = category.name;
+            button.onclick = () => filterByCategory(category.id);
+            categoryButtons.appendChild(button);
         });
-        const allCategoriesItem = createAllCategoriesItem();
-        categoryGrid.appendChild(allCategoriesItem);
     }
 
-    function createCategoryItem(category) {
-        const categoryItem = document.createElement('div');
-        categoryItem.classList.add('category-item');
-        categoryItem.innerHTML = `<i class="${category.icon}"></i><span>${category.name}</span>`;
-        categoryItem.addEventListener('click', () => selectCategory(categoryItem, category));
-        return categoryItem;
-    }
-
-    function createAllCategoriesItem() {
-        const allCategoriesItem = document.createElement('div');
-        allCategoriesItem.classList.add('category-item');
-        allCategoriesItem.innerHTML = `<i class="fas fa-th-large"></i><span>सर्व श्रेण्या</span>`;
-        allCategoriesItem.addEventListener('click', () => selectAllCategories(allCategoriesItem));
-        return allCategoriesItem;
-    }
-
-    function selectCategory(categoryItem, category) {
-        document.querySelectorAll('.category-item').forEach(item =>
-            item.classList.remove('selected')
-        );
-        categoryItem.classList.add('selected');
-        selectedCategory = category.id;
-        selectedCategoryName.textContent = category.name;
-        selectedCategoryName.style.opacity = '1';
+    function filterByCategory(categoryId) {
+        selectedCategory = categoryId;
         filterBusinesses();
     }
 
-    function selectAllCategories(allCategoriesItem) {
-        document.querySelectorAll('.category-item').forEach(item =>
-            item.classList.remove('selected')
-        );
-        allCategoriesItem.classList.add('selected');
-        selectedCategory = null;
-        selectedCategoryName.textContent = '';
-        selectedCategoryName.style.opacity = '0';
-        filterBusinesses();
-    }
-
-    function debounce(func, delay) {
-        let timer;
-        return (...args) => {
-            clearTimeout(timer);
-            timer = setTimeout(() => func(...args), delay);
-        };
-    }
-
-    const filterBusinesses = debounce(() => {
+    function filterBusinesses() {
         const searchTerm = searchInput.value.trim().toLowerCase();
-        const filteredBusinesses = businessData.businesses.filter(business => {
+        const filtered = businessData.businesses.filter(business => {
             const matchesCategory = !selectedCategory || business.category === selectedCategory;
-            const matchesSearch = !searchTerm || Object.values(business).some(value =>
-                value.toString().toLowerCase().includes(searchTerm)
-            );
+            const matchesSearch = !searchTerm || business.shopName.toLowerCase().includes(searchTerm);
             return matchesCategory && matchesSearch;
         });
-        renderBusinesses(filteredBusinesses);
-    }, 300);
+        renderBusinesses(filtered);
+    }
 
     function renderBusinesses(businesses) {
         businessList.innerHTML = '';
         if (businesses.length === 0) {
-            businessList.innerHTML = '<div class="no-results"><p>कोणतेही व्यवसाय सापडले नाहीत.</p></div>';
+            businessList.innerHTML = '<p>व्यवसाय सापडले नाहीत.</p>';
             return;
         }
         businesses.forEach(business => {
-            const businessCard = createBusinessCard(business);
-            businessList.appendChild(businessCard);
+            const card = document.createElement('div');
+            card.classList.add('business-card');
+            card.innerHTML = `
+                <h4>${business.shopName}</h4>
+                <p>मालक: ${business.ownerName}</p>
+                <p>संपर्क: <a href="tel:${business.contactNumber}">${business.contactNumber}</a></p>
+            `;
+            businessList.appendChild(card);
         });
     }
 
-    function createBusinessCard(business) {
-        const businessCard = document.createElement('div');
-        businessCard.classList.add('business-card');
-        businessCard.innerHTML = `
-            <h4>${business.shopName}</h4>
-            <p><strong>मालक:</strong> ${business.ownerName}</p>
-            <p><strong>संपर्क:</strong> <a href="tel:${business.contactNumber}">${business.contactNumber}</a></p>
-        `;
-        return businessCard;
+    function showLoading() {
+        businessList.innerHTML = '<p>लोडिंग...</p>';
+    }
+
+    function showError(message) {
+        businessList.innerHTML = `<p>त्रुटी: ${message}</p>`;
     }
 
     clearSearchButton.addEventListener('click', () => {
@@ -123,14 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filterBusinesses();
     });
 
-    function showLoader() {
-        businessList.innerHTML = `<div class="loader">लोडिंग...</div>`;
-    }
-
-    function hideLoader() {
-        const loader = businessList.querySelector('.loader');
-        if (loader) loader.remove();
-    }
+    searchInput.addEventListener('input', filterBusinesses);
 
     fetchBusinessData();
 });
